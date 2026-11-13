@@ -1,0 +1,90 @@
+{
+  "seed": 42,
+  "stratify_by": [
+    "subset",
+    "difficulty"
+  ],
+  "source": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\audit\\accepted.jsonl",
+  "source_sha256": "82d59c01e6db2a478863f99bb8967234e40035b0caa6786081f0ace4e245041d",
+  "n_accepted": 22940,
+  "files": {
+    "validation": {
+      "path": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\validation.jsonl",
+      "rows": 300,
+      "sha256": "6b8441cc22a0d390065a8f1b17a5dc7ad1771b3a8699f0a31e8778dcf61ee5b5",
+      "ids_file": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\validation_ids.json",
+      "by_subset": {
+        "Filter": 105,
+        "Taco": 37,
+        "Prefill": 21,
+        "Leetcode": 31,
+        "Algorithm": 23,
+        "Data_Structure": 17,
+        "Code_Contests": 20,
+        "Codeforces": 20,
+        "Apps": 12,
+        "Package": 8,
+        "Evol": 5,
+        "Docs": 1
+      },
+      "by_difficulty": {
+        "easy": 179,
+        "medium": 66,
+        "hard": 55
+      }
+    },
+    "train_2000": {
+      "path": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_2000.jsonl",
+      "rows": 2000,
+      "sha256": "6cd79cbed28ce676fbca03e4667b9ea057f03e8b6ccd75598403bd0388a88a39",
+      "ids_file": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_2000_ids.json",
+      "by_subset": {
+        "Filter": 710,
+        "Leetcode": 206,
+        "Evol": 41,
+        "Algorithm": 157,
+        "Taco": 247,
+        "Code_Contests": 131,
+        "Prefill": 137,
+        "Docs": 9,
+        "Data_Structure": 105,
+        "Codeforces": 127,
+        "Package": 52,
+        "Apps": 78
+      },
+      "by_difficulty": {
+        "easy": 1193,
+        "medium": 442,
+        "hard": 365
+      }
+    },
+    "train_5000": {
+      "path": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_5000.jsonl",
+      "rows": 5000,
+      "sha256": "d7dae7b537c9a4864ff48d66ef3f1d758579d23770ace993069d962378aa03ef",
+      "ids_file": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_5000_ids.json",
+      "by_subset": {
+        "Filter": 1772,
+        "Leetcode": 515,
+        "Evol": 102,
+        "Algorithm": 391,
+        "Taco": 618,
+        "Code_Contests": 328,
+        "Prefill": 343,
+        "Docs": 21,
+        "Data_Structure": 264,
+        "Codeforces": 320,
+        "Package": 130,
+        "Apps": 196
+      },
+      "by_difficulty": {
+        "easy": 2985,
+        "medium": 1099,
+        "hard": 916
+      }
+    }
+  },
+  "system_prompt": "You are a Python coding assistant. Write correct code. Respond with a single code block.",
+  "format": "trl prompt-completion (conversational)",
+  "nested": true
+}

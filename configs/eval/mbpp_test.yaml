@@ -1,0 +1,5 @@
+# Final evaluation: MBPP test split (500 problems), four configurations A-D.
+extends: ../base.yaml
+evaluation:
+  split: test
+  output_dir: results/mbpp_test

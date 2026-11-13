@@ -1,0 +1,7 @@
+# Quick pipeline check on 5 validation problems.
+extends: ../base.yaml
+evaluation:
+  split: validation
+  limit: 5
+  output_dir: results/mbpp_smoke
+  bootstrap_samples: 200

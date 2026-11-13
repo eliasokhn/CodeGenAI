@@ -1,0 +1,15 @@
+# Tiny end-to-end training smoke test (a handful of optimisation steps).
+extends: ../base.yaml
+training:
+  run_name: smoke
+  train_file: data/processed/train_2000.jsonl
+  output_dir: runs/smoke
+  max_steps: 4
+  logging_steps: 1
+  eval_steps: 2
+  save_steps: 2
+  save_total_limit: 1
+  max_seq_length: 1024
+  report_to: []
+mlflow:
+  enabled: false

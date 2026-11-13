@@ -1,0 +1,23 @@
+[
+  {
+    "task_id": 511,
+    "entry_point": "find_Min_Sum",
+    "n_visible": 1,
+    "n_hidden": 3,
+    "plus": false
+  },
+  {
+    "task_id": 512,
+    "entry_point": "count_element_freq",
+    "n_visible": 1,
+    "n_hidden": 3,
+    "plus": false
+  },
+  {
+    "task_id": 513,
+    "entry_point": "add_str",
+    "n_visible": 1,
+    "n_hidden": 3,
+    "plus": false
+  }
+]

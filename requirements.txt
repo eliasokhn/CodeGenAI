@@ -1,0 +1,23 @@
+# Core (CPU-capable) requirements. Versions tested on 2026-11-13 with Python 3.11.
+# For CUDA: install torch from https://pytorch.org (cu128+ for RTX 50-series) BEFORE this file.
+torch>=2.4
+transformers>=4.51,<6
+datasets>=3.0
+peft>=0.15
+trl>=0.19
+accelerate>=1.0
+huggingface_hub>=0.30
+pyyaml>=6
+pydantic>=2
+numpy>=1.26,<2.3
+pandas>=2
+scipy>=1.10
+matplotlib>=3.8
+mlflow>=2.17
+gradio>=5
+docker>=7
+rich>=13
+tqdm
+pytest>=8
+pytest-timeout>=2.3
+ruff

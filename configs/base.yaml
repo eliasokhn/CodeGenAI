@@ -1,0 +1,135 @@
+# CodeGenAI base configuration. Every other config file extends this one.
+project_name: CodeGenAI
+
+paths:
+  data_dir: data/raw
+  processed_dir: data/processed
+  audit_dir: data/audit
+  runs_dir: runs
+  results_dir: results
+  hf_cache_dir: null          # null = default Hugging Face cache
+
+model:
+  model_id: Qwen/Qwen2.5-Coder-1.5B-Instruct
+  revision: 2e1fd397ee46e1388853d2af2c993145b0f1098a  # Qwen/Qwen2.5-Coder-1.5B-Instruct commit resolved 2026-11-13
+  torch_dtype: bfloat16
+  load_in_4bit: true          # QLoRA: 4-bit NF4 + double quantisation (requires bitsandbytes + CUDA)
+  bnb_4bit_quant_type: nf4
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: bfloat16
+  attn_implementation: null   # e.g. sdpa
+  device_map: auto
+  adapter_path: null
+  trust_remote_code: false
+
+generation:
+  max_new_tokens: 512
+  do_sample: false            # deterministic (greedy) decoding for every evaluation
+  repetition_penalty: 1.0
+  system_prompt: "You are a Python coding assistant. Write correct code. Respond with a single code block."
+
+data:
+  kodcode_id: F-A-I-L/kodcode-verified-python-235k
+  kodcode_revision: 4ba3098799a405943ce4c74a3449a80e4c21841d
+  upstream_id: KodCode/KodCode-V1
+  upstream_revision: 97d81f0695ddd7c5c02bfe16436db9a17a4a21e5
+  mbpp_id: google-research-datasets/mbpp
+  mbpp_revision: 4bb6404fdc6cacfda99d4ac4205087b89d32030c
+  mbpp_config: full
+  mbppplus_id: evalplus/mbppplus
+  mbppplus_revision: b2d74c91837c3f2a20c1299ae98133cbe7cfa077
+  candidate_pool_size: 30000  # KodCode rows scanned (streaming, deterministic order) before filtering
+  train_sizes: [2000, 5000]
+  validation_size: 300
+  split_seed: 42
+  filters:
+    styles: [instruct]
+    require_verification_passed: true
+    require_constrains: true
+    require_value_assert: true
+    min_asserts: 2
+    max_eval_similarity: 0.6
+    exclude_test_shapes: [uses_mock, async_test, pytest_fixture, class_based, setup_module]
+    max_solution_lines: 120
+    max_solution_chars: 4000
+    max_prompt_chars: 3000
+
+audit:
+  sample_size: 250
+  mutation_sample_size: 60
+  execute_in_sandbox: true
+  contamination_threshold: 0.8
+  contamination_ngram: 8
+  stratify_by: [subset, difficulty]
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q_proj, v_proj]
+  bias: none
+
+training:
+  run_name: lora_r16_n2000
+  train_file: data/processed/train_2000.jsonl
+  validation_file: data/processed/validation.jsonl
+  output_dir: runs/lora_r16_n2000
+  learning_rate: 1.0e-4
+  num_train_epochs: 3
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 8
+  max_seq_length: 1024
+  gradient_checkpointing: true
+  bf16: true
+  seed: 42
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.03
+  logging_steps: 10
+  eval_steps: 100
+  save_steps: 100
+  save_total_limit: 3
+  optim: paged_adamw_8bit
+  resume_from_checkpoint: null  # path, or "auto" to pick up the latest checkpoint in output_dir
+  max_steps: -1
+  drop_truncated_completions: true
+  report_to: [mlflow]
+
+sandbox:
+  image: codegenai-sandbox:latest
+  timeout_seconds: 20
+  per_test_timeout_seconds: 5
+  memory: 256m
+  cpus: 1.0
+  pids_limit: 64
+  tmpfs_size: 64m
+  max_output_bytes: 65536
+
+correction:
+  max_attempts: 2
+  max_feedback_chars: 2500
+  stop_on_identical_code: true
+
+evaluation:
+  split: test
+  limit: null
+  visible_tests: first        # the first MBPP assert is shown in the prompt and used as feedback
+  hidden_test_policy: all     # final verdict uses all MBPP asserts (standard pass@1)
+  include_challenge_tests: false
+  use_mbppplus: false
+  configurations: [A, B, C, D]
+  adapter_path: null
+  output_dir: results/mbpp_eval
+  bootstrap_samples: 2000
+
+mlflow:
+  tracking_uri: file:./mlruns
+  experiment_name: codegenai
+  enabled: true
+
+app:
+  host: 127.0.0.1
+  port: 7860
+  share: false
+  adapter_path: null
+  enable_execution: true

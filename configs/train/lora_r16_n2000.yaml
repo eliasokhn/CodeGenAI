@@ -1,0 +1,8 @@
+extends: ../base.yaml
+lora:
+  r: 16
+  alpha: 32
+training:
+  run_name: lora_r16_n2000
+  train_file: data/processed/train_2000.jsonl
+  output_dir: runs/lora_r16_n2000

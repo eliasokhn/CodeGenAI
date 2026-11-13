@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codegenai"
+version = "0.1.0"
+description = "CodeGenAI: Python code generation with Qwen2.5-Coder LoRA fine-tuning, sandboxed unit testing and feedback-based self-correction."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "CodeGenAI project" }]
+dependencies = [
+  "torch>=2.4",
+  "transformers>=4.51",
+  "datasets>=3.0",
+  "peft>=0.15",
+  "trl>=0.19",
+  "accelerate>=1.0",
+  "huggingface_hub>=0.30",
+  "pyyaml>=6",
+  "pydantic>=2",
+  "numpy>=1.26",
+  "pandas>=2",
+  "scipy>=1.10",
+  "matplotlib>=3.8",
+  "mlflow>=2.17",
+  "gradio>=5",
+  "docker>=7",
+  "rich>=13",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+gpu = ["bitsandbytes>=0.45"]
+dev = ["pytest>=8", "pytest-timeout>=2.3", "ruff"]
+
+[project.scripts]
+codegenai-verify-env = "codegenai.env_check:main"
+codegenai-download = "codegenai.data.download:main"
+codegenai-audit = "codegenai.data.audit:main"
+codegenai-splits = "codegenai.data.splits:main"
+codegenai-train = "codegenai.training.train:main"
+codegenai-eval = "codegenai.evaluation.mbpp_eval:main"
+codegenai-app = "codegenai.app.gradio_app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+codegenai = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+  "network: requires internet access (Hugging Face Hub)",
+  "docker: requires a running Docker daemon",
+  "gpu: requires a CUDA GPU",
+  "slow: slow test",
+]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"

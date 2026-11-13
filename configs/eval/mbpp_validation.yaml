@@ -1,0 +1,5 @@
+# Model selection: MBPP validation split (90 problems). Never used for final numbers.
+extends: ../base.yaml
+evaluation:
+  split: validation
+  output_dir: results/mbpp_validation

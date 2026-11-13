@@ -1,0 +1,298 @@
+{
+  "created_at": "2026-11-13T16:36:07Z",
+  "elapsed_s": 570.7,
+  "config": {
+    "filters": {
+      "styles": [
+        "instruct"
+      ],
+      "require_verification_passed": true,
+      "require_constrains": true,
+      "require_value_assert": true,
+      "min_asserts": 2,
+      "max_eval_similarity": 0.6,
+      "exclude_subsets": [],
+      "exclude_test_shapes": [
+        "uses_mock",
+        "async_test",
+        "pytest_fixture",
+        "class_based",
+        "setup_module"
+      ],
+      "max_solution_lines": 120,
+      "max_solution_chars": 4000,
+      "max_prompt_chars": 3000,
+      "allowed_imports": [
+        "collections",
+        "typing",
+        "math",
+        "re",
+        "heapq",
+        "itertools",
+        "functools",
+        "bisect",
+        "string",
+        "operator",
+        "random",
+        "datetime",
+        "json",
+        "copy",
+        "statistics",
+        "fractions",
+        "decimal",
+        "enum",
+        "dataclasses",
+        "abc",
+        "array",
+        "queue",
+        "sys",
+        "time",
+        "numbers",
+        "cmath",
+        "textwrap",
+        "unicodedata",
+        "struct",
+        "calendar",
+        "hashlib",
+        "base64",
+        "zlib",
+        "io",
+        "contextlib",
+        "types",
+        "inspect",
+        "ast"
+      ],
+      "disallowed_imports": [
+        "os",
+        "subprocess",
+        "socket",
+        "requests",
+        "urllib",
+        "http",
+        "shutil",
+        "pathlib",
+        "threading",
+        "multiprocessing",
+        "asyncio",
+        "ctypes",
+        "pickle",
+        "importlib",
+        "signal",
+        "tempfile",
+        "glob",
+        "flask",
+        "django",
+        "torch",
+        "sklearn",
+        "numpy",
+        "pandas",
+        "scipy",
+        "seaborn",
+        "matplotlib",
+        "cv2",
+        "PIL",
+        "networkx",
+        "sympy",
+        "pyarrow",
+        "psutil"
+      ]
+    },
+    "audit": {
+      "sample_size": 250,
+      "mutation_sample_size": 60,
+      "execute_in_sandbox": true,
+      "contamination_threshold": 0.8,
+      "contamination_ngram": 8,
+      "stratify_by": [
+        "subset",
+        "difficulty"
+      ]
+    },
+    "candidate_pool_size": 30000,
+    "seed": 42
+  },
+  "stage1_metadata_filter": {
+    "eval_similarity>0.6": 1991,
+    "tests_do_not_constrain_solution": 30323,
+    "test_shape": 757,
+    "n_asserts<2": 323,
+    "no_value_assert": 93,
+    "prompt_too_long": 1668,
+    "solution_too_long": 74,
+    "style=complete": 70684,
+    "__total_rows__": 234555,
+    "__kept__": 128642
+  },
+  "pool_size": 30000,
+  "upstream_rows_retrieved": 30000,
+  "static_rejections": {
+    "instruction_solution_misaligned": 447,
+    "test_no_value_asserts": 1773,
+    "no_top_level_function": 1639,
+    "top_level_io": 691,
+    "unsupported_import": 240,
+    "near_duplicate": 1648,
+    "disallowed_import": 463,
+    "tests_do_not_reference_solution_functions": 24,
+    "test_disallowed_import": 100,
+    "test_imports_undefined_name": 28,
+    "mbpp_contamination": 7
+  },
+  "accepted": 22940,
+  "rejected": 7060,
+  "contamination": {
+    "threshold_jaccard": 0.8,
+    "ngram": 8,
+    "hits": 7,
+    "max_prompt_jaccard_observed": 0.5,
+    "prompt_jaccard_percentiles": {
+      "min": 0.0,
+      "p25": 0.07142857142857142,
+      "median": 0.0967741935483871,
+      "p75": 0.13793103448275862,
+      "p95": 0.23076923076923078,
+      "max": 0.5,
+      "mean": 0.11
+    },
+    "mbpp_splits_screened": [
+      "train",
+      "validation",
+      "test",
+      "prompt"
+    ]
+  },
+  "execution_audit": {
+    "executed": true,
+    "sample_size": 250,
+    "statuses": {
+      "passed": 250
+    },
+    "reproduction_rate": 1.0,
+    "mean_exec_time_s": 0.99,
+    "mutation": {
+      "sample_size": 60,
+      "total_mutants": 184,
+      "killed": 180,
+      "stub_survived": 0,
+      "kill_rate": 0.9783
+    },
+    "removed_after_execution": 0,
+    "sandbox_image": "codegenai-sandbox:latest"
+  },
+  "accepted_stats": {
+    "n": 22940,
+    "by_subset": {
+      "Filter": 8130,
+      "Algorithm": 1789,
+      "Apps": 898,
+      "Codeforces": 1473,
+      "Prefill": 1572,
+      "Taco": 2837,
+      "Code_Contests": 1508,
+      "Leetcode": 2366,
+      "Package": 597,
+      "Data_Structure": 1213,
+      "Docs": 94,
+      "Evol": 463
+    },
+    "by_difficulty": {
+      "easy": 13694,
+      "medium": 5046,
+      "hard": 4200
+    },
+    "by_style": {
+      "instruct": 22940
+    },
+    "solution_lines": {
+      "min": 2,
+      "p25": 12,
+      "median": 16,
+      "p75": 22,
+      "p95": 33,
+      "max": 107,
+      "mean": 17.7
+    },
+    "solution_chars": {
+      "min": 66,
+      "p25": 407,
+      "median": 566,
+      "p75": 784,
+      "p95": 1243,
+      "max": 3728,
+      "mean": 633.36
+    },
+    "instruction_chars": {
+      "min": 27,
+      "p25": 280,
+      "median": 605,
+      "p75": 1276,
+      "p95": 1940,
+      "max": 2996,
+      "mean": 809.34
+    },
+    "n_asserts": {
+      "min": 2,
+      "p25": 6,
+      "median": 7,
+      "p75": 9,
+      "p95": 13,
+      "max": 32,
+      "mean": 7.78
+    },
+    "functions_per_solution": {
+      "min": 1,
+      "p25": 1,
+      "median": 1,
+      "p75": 1,
+      "p95": 2,
+      "max": 10,
+      "mean": 1.19
+    },
+    "top_imports": {
+      "collections": 1932,
+      "typing": 1466,
+      "re": 564,
+      "heapq": 415,
+      "math": 406,
+      "random": 298,
+      "itertools": 272,
+      "sys": 182,
+      "datetime": 130,
+      "string": 106,
+      "functools": 95,
+      "bisect": 48,
+      "json": 43,
+      "operator": 22,
+      "time": 17,
+      "base64": 12,
+      "hashlib": 11,
+      "cmath": 10,
+      "enum": 6,
+      "statistics": 5
+    },
+    "distinct_entry_points": 11990
+  },
+  "token_stats": {
+    "n": 3000,
+    "prompt_tokens": {
+      "min": 35,
+      "p25": 86,
+      "median": 167,
+      "p75": 351,
+      "p95": 530,
+      "max": 994,
+      "mean": 226.96
+    },
+    "total_tokens": {
+      "min": 72,
+      "p25": 216,
+      "median": 339,
+      "p75": 525,
+      "p95": 775,
+      "max": 1731,
+      "mean": 386.89
+    },
+    "fraction_over_1024": 0.006,
+    "tokenizer": "Qwen/Qwen2.5-Coder-1.5B-Instruct"
+  }
+}

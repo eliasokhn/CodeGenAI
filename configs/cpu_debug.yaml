@@ -1,0 +1,14 @@
+# Debug settings for machines without CUDA: no quantisation, fp32, short context.
+extends: base.yaml
+model:
+  load_in_4bit: false
+  torch_dtype: float32
+  device_map: null
+training:
+  bf16: false
+  optim: adamw_torch
+  gradient_checkpointing: false
+  max_seq_length: 512
+  report_to: []
+mlflow:
+  enabled: false
