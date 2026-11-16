@@ -91,9 +91,15 @@ exact normalised-solution match, and function name+arity coincidence with Jaccar
 ## Splits (`data/processed/manifest.json`)
 
 Single seeded (42) stratified ordering → `validation` 300 (held-out KodCode, with tests in
-`validation_records.jsonl`), `train_2000` ⊂ `train_5000` (nested, asserted). Subset proportions are
-preserved within ±1 row per stratum (e.g. Filter 35.5 % / 35.4 % / 35.0 %). Files are TRL
-prompt-completion conversations with the project system prompt; SHA-256 per file in the manifest.
+`validation_records.jsonl`), `train_2000` ⊂ `train_5000` ⊂ `train_20000` (nested, asserted; the 20k
+set fits inside the 22,940 accepted rows without a further audit). Subset proportions are preserved
+within ±1 row per stratum (e.g. Filter 35.5 % / 35.4 % / 35.4 %). Files are TRL prompt-completion
+conversations with the project system prompt; SHA-256 per file in the manifest.
+
+**Prompt-test augmentation.** A deterministic 50 % of ids are selected to show one upstream assert in
+the user turn (same template as the MBPP evaluation prompt). Only self-contained asserts qualify,
+so the realised share is 39.4 % (`train_20000`: 7,879 rows; `train_5000`: 1,944; `validation`: 108).
+The remaining selected rows keep the instruction-only prompt.
 
 ## Representative-sample review
 

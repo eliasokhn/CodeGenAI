@@ -2,7 +2,7 @@
 extends: ../base.yaml
 training:
   run_name: smoke
-  train_file: data/processed/train_2000.jsonl
+  train_file: data/processed/train_5000.jsonl
   output_dir: runs/smoke
   max_steps: 4
   logging_steps: 1

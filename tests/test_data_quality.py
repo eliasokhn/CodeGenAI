@@ -126,23 +126,45 @@ def test_build_splits_nested_and_disjoint(tmp_path, cfg, sample_record):
     c = cfg.model_copy(deep=True)
     c.paths.processed_dir = tmp_path / "processed"
     c.data.validation_size = 10
-    c.data.train_sizes = [10, 25]
+    c.data.train_sizes = [5, 10, 25]
+    c.data.train_prompt_test_fraction = 0.5
     man = build_splits(c, acc)
     val = json.loads((tmp_path / "processed" / "validation_ids.json").read_text())
+    t5 = json.loads((tmp_path / "processed" / "train_5_ids.json").read_text())
     t10 = json.loads((tmp_path / "processed" / "train_10_ids.json").read_text())
     t25 = json.loads((tmp_path / "processed" / "train_25_ids.json").read_text())
     assert len(val) == 10 and len(t10) == 10 and len(t25) == 25
-    assert not set(val) & set(t25) and t25[:10] == t10 and man["nested"]
-    row = next(read_jsonl(tmp_path / "processed" / "train_10.jsonl"))
+    assert not set(val) & set(t25) and t25[:10] == t10 and t10[:5] == t5 and man["nested"]
+    rows = list(read_jsonl(tmp_path / "processed" / "train_25.jsonl"))
+    row = rows[0]
     assert [m["role"] for m in row["prompt"]] == ["system", "user"] and row["completion"][0]["role"] == "assistant"
     assert row["completion"][0]["content"].startswith("```python\n") and row["completion"][0]["content"].endswith("```")
+    # ~half of the prompts carry exactly one upstream assert, rendered with the MBPP evaluation template
+    with_tests = [r for r in rows if r["meta"]["n_prompt_tests"]]
+    assert 5 <= len(with_tests) <= 20 and man["files"]["train_25"]["rows_with_prompt_tests"] == len(with_tests)
+    user = with_tests[0]["prompt"][1]["content"]
+    assert "Your code should satisfy the following test(s):" in user
+    assert user.count("assert ") == 1 and "max_product(" in user
+    plain = next(r for r in rows if not r["meta"]["n_prompt_tests"])
+    assert "assert" not in plain["prompt"][1]["content"]
+    # determinism: same ids get prompt tests on a rebuild
+    man2 = build_splits(c, acc)
+    assert man2["files"]["train_25"]["sha256"] == man["files"]["train_25"]["sha256"]
 
 
 def test_record_to_example_uses_consistent_prompt(sample_record, cfg):
+    from codegenai.model.prompts import build_generation_messages
+
     ex = record_to_example(sample_record, cfg.generation.system_prompt)
     assert ex.prompt[0]["content"] == cfg.generation.system_prompt
     assert ex.prompt[1]["content"] == sample_record.instruction
     assert sample_record.solution.strip() in ex.completion[0]["content"]
+    assert ex.meta["n_prompt_tests"] == 0
+    tests = ["assert max_product([1, 5, 3, 7, 9]) == 63"]
+    ex2 = record_to_example(sample_record, cfg.generation.system_prompt, tests)
+    # identical to the evaluation-time prompt builder
+    assert ex2.prompt == build_generation_messages(sample_record.instruction, tests, cfg.generation.system_prompt)
+    assert ex2.meta["n_prompt_tests"] == 1
 
 
 def test_mbpp_problem_visible_hidden_split():

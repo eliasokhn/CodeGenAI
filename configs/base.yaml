@@ -39,9 +39,11 @@ data:
   mbppplus_id: evalplus/mbppplus
   mbppplus_revision: b2d74c91837c3f2a20c1299ae98133cbe7cfa077
   candidate_pool_size: 30000  # KodCode rows scanned (streaming, deterministic order) before filtering
-  train_sizes: [2000, 5000]
+  train_sizes: [2000, 5000, 20000]   # nested: train_2000 ⊂ train_5000 ⊂ train_20000
   validation_size: 300
   split_seed: 42
+  train_prompt_test_fraction: 0.5    # share of training prompts that show one upstream assert (MBPP eval template)
+  train_prompt_max_tests: 1
   filters:
     styles: [instruct]
     require_verification_passed: true
@@ -94,6 +96,9 @@ training:
   max_steps: -1
   drop_truncated_completions: true
   report_to: [mlflow]
+  load_best_model_at_end: true   # final adapter = checkpoint with the lowest validation loss
+  metric_for_best_model: eval_loss
+  early_stopping_patience: 3     # stop after 3 evaluations without improvement (0 = off)
 
 sandbox:
   image: codegenai-sandbox:latest

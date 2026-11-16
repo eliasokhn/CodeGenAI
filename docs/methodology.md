@@ -28,9 +28,15 @@ Instruction -> Qwen (base | +adapter) -> code -> sandbox (visible tests) -> stru
   (3) for execution-graded KodCode validation. They are *not* shown to the model during training
   (the SFT target is the solution only).
 * **Splits**: one seeded, stratified (subset × difficulty) ordering of the accepted records; the
-  first 300 form the KodCode validation set; `train_2000` is a prefix of `train_5000` so the
-  2k-vs-5k comparison isolates data quantity. `data/processed/manifest.json` stores SHA-256 hashes
-  and id lists.
+  first 300 form the KodCode validation set; `train_2000 ⊂ train_5000 ⊂ train_20000` are prefixes
+  of the same ordering so size comparisons isolate data quantity. `data/processed/manifest.json`
+  stores SHA-256 hashes and id lists. The 20k set needs no extra audit (22,940 accepted rows).
+* **Prompt-test augmentation**: for a deterministic 50 % of ids (hash of seed + id) the training
+  prompt additionally shows **one upstream KodCode assert**, rendered with the exact template the
+  MBPP evaluation prompt uses ("Your code should satisfy the following test(s):"). Only
+  self-contained asserts qualify (`extract_standalone_asserts`: a `test_*` function made of plain
+  asserts, no fixtures/locals, calling the entry point) — about 39 % of rows end up with one. No
+  MBPP content is involved; this merely aligns the training and evaluation prompt distributions.
 * **Evaluation**: `google-research-datasets/mbpp` (`full` config) @ `4bb6404…`. The **validation**
   split (90 problems) is used for model selection (choosing between r=8/16 and 2k/5k adapters);
   the **test** split (500 problems) is reserved for the final A–D comparison and is run once per
@@ -96,19 +102,46 @@ corrections, token counts, generation / feedback-test / hidden-test latency and 
 Aggregates: pass@1, final success, correction success (fixed ÷ initially failing), syntax validity,
 runtime-error rate, average corrections, latencies, peak GPU memory, with 95 % Wilson intervals;
 paired bootstrap (2,000 resamples) and exact McNemar tests for A→B, A→C, B→D, C→D, A→D.
-Dataset-size and rank effects (2k vs 5k, r=8 vs r=16) are compared on MBPP validation and KodCode
-validation loss; only the selected adapter is evaluated on MBPP test.
+### Adapter experiments and model selection
+
+Headline matrix (data size × adapter width), all other hyper-parameters identical:
+
+| run | examples | LoRA targets | trainable params |
+|---|---|---|---|
+| `lora_qv_n5000` | 5,000 | q_proj, v_proj | 2.18 M (0.14 %) |
+| `lora_all_n5000` | 5,000 | q,k,v,o,gate,up,down | 18.46 M (1.18 %) |
+| `lora_qv_n20000` | 20,000 | q_proj, v_proj | 2.18 M |
+| `lora_all_n20000` | 20,000 | q,k,v,o,gate,up,down | 18.46 M |
+
+(The initial `lora_r{8,16}_n{2000,5000}` configs remain available for the rank ablation.)
+
+Selection protocol, in this order:
+
+1. Evaluate the baseline (configuration A) on MBPP **validation** once.
+2. Evaluate every adapter as configuration B on MBPP validation (same prompts, decoding, sandbox).
+3. Select the adapter with the highest validation final-success (ties: lower KodCode validation
+   loss). Evaluate configurations A–D on MBPP **test** exactly once with that adapter.
+4. If no adapter beats the baseline on validation, report that result as is; the pre-registered
+   fallbacks are, in order: learning rate 5e-5, rank 32 on all projections, and restricting the
+   training distribution to non-competitive subsets
+   (`data.filters.exclude_subsets: [Codeforces, Code_Contests, Taco, Apps]`, which requires a larger
+   audited pool, `data.candidate_pool_size: 45000`). Any such change is logged as a new run; test-split
+   numbers are never used to make these choices.
 
 ## Training
 
-QLoRA: 4-bit NF4, double quantisation, bf16 compute; LoRA r=16, α=32, dropout 0.05 on `q_proj`,
-`v_proj`; lr 1e-4 cosine with 3 % warm-up; 3 epochs; batch 1 × grad-accum 8; max length 1,024;
+QLoRA: 4-bit NF4, double quantisation, bf16 compute; LoRA r=16, α=32, dropout 0.05 on the target
+modules above; lr 1e-4 cosine with 3 % warm-up; 3 epochs; batch 1 × grad-accum 8; max length 1,024;
 gradient checkpointing; paged 8-bit AdamW; seed 42. Base weights frozen (asserted at trainer
 construction: every trainable parameter name contains `lora_`). Completion-only loss: TRL's
 prompt-completion path masks the prompt; `codegenai.training.masking` recomputes the mask
 independently and the trainer refuses to start if any prompt token is supervised or the `<|im_end|>`
 token of a completion is missing. Examples whose prompt+completion exceed `max_seq_length` are
-dropped (never truncated). MLflow logs hyper-parameters, loss, eval loss and GPU memory.
+dropped (never truncated; 0.8 % of the 5k set). **Over-fitting guard**: validation loss on the 300
+held-out KodCode rows every 100 steps, `load_best_model_at_end` keeps the lowest-loss checkpoint as
+the final adapter, and early stopping (patience 3 evaluations) ends a run that stops improving, so
+3 epochs is an upper bound rather than a fixed budget. MLflow logs hyper-parameters, loss, eval loss
+and GPU memory; `summary.json` records `best_model_checkpoint` and `best_metric`.
 
 ## Reproducibility
 

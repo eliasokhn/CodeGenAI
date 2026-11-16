@@ -11,8 +11,9 @@
     "validation": {
       "path": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\validation.jsonl",
       "rows": 300,
-      "sha256": "6b8441cc22a0d390065a8f1b17a5dc7ad1771b3a8699f0a31e8778dcf61ee5b5",
+      "sha256": "b22699dfa7fe81154067e9412f25db4b999b2346ed06b36f4bb49490197a70a6",
       "ids_file": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\validation_ids.json",
+      "rows_with_prompt_tests": 108,
       "by_subset": {
         "Filter": 105,
         "Taco": 37,
@@ -36,8 +37,9 @@
     "train_2000": {
       "path": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_2000.jsonl",
       "rows": 2000,
-      "sha256": "6cd79cbed28ce676fbca03e4667b9ea057f03e8b6ccd75598403bd0388a88a39",
+      "sha256": "3fc20d70c41d5e539f29948fd9b9223635017051d16a1a07445cfc162eab0406",
       "ids_file": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_2000_ids.json",
+      "rows_with_prompt_tests": 789,
       "by_subset": {
         "Filter": 710,
         "Leetcode": 206,
@@ -61,8 +63,9 @@
     "train_5000": {
       "path": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_5000.jsonl",
       "rows": 5000,
-      "sha256": "d7dae7b537c9a4864ff48d66ef3f1d758579d23770ace993069d962378aa03ef",
+      "sha256": "73237564b5c14f85437bdc25a266bf48017fe177a3d24f4944a97544c865a146",
       "ids_file": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_5000_ids.json",
+      "rows_with_prompt_tests": 1944,
       "by_subset": {
         "Filter": 1772,
         "Leetcode": 515,
@@ -82,9 +85,37 @@
         "medium": 1099,
         "hard": 916
       }
+    },
+    "train_20000": {
+      "path": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_20000.jsonl",
+      "rows": 20000,
+      "sha256": "3e6dd0665668254e1d56ba433dd8a3d433439ce35b2191b67b590897d7ec8a74",
+      "ids_file": "C:\\Users\\Admin\\Desktop\\Uni\\Y5\\genAI\\data\\processed\\train_20000_ids.json",
+      "rows_with_prompt_tests": 7879,
+      "by_subset": {
+        "Filter": 7089,
+        "Leetcode": 2063,
+        "Evol": 405,
+        "Algorithm": 1560,
+        "Taco": 2473,
+        "Code_Contests": 1314,
+        "Prefill": 1371,
+        "Docs": 83,
+        "Data_Structure": 1056,
+        "Codeforces": 1283,
+        "Package": 521,
+        "Apps": 782
+      },
+      "by_difficulty": {
+        "easy": 11940,
+        "medium": 4399,
+        "hard": 3661
+      }
     }
   },
   "system_prompt": "You are a Python coding assistant. Write correct code. Respond with a single code block.",
   "format": "trl prompt-completion (conversational)",
+  "prompt_test_fraction": 0.5,
+  "prompt_max_tests": 1,
   "nested": true
 }

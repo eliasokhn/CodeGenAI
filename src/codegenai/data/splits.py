@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any, Optional
 
 from codegenai.config import Config, load_config, resolve_path
+from codegenai.data.download import stable_hash
+from codegenai.data.extract import extract_standalone_asserts
 from codegenai.data.formatting import record_to_example
 from codegenai.data.schema import KodCodeRecord, read_jsonl, sha256_file, write_json, write_jsonl
 from codegenai.logging_utils import get_logger, setup_logging
@@ -75,19 +77,32 @@ def build_splits(cfg: Config, accepted_path: Optional[Path] = None) -> dict[str,
         "seed": cfg.data.split_seed, "stratify_by": keys, "source": str(accepted_path),
         "source_sha256": sha256_file(accepted_path), "n_accepted": len(records), "files": {},
         "system_prompt": cfg.generation.system_prompt, "format": "trl prompt-completion (conversational)",
+        "prompt_test_fraction": cfg.data.train_prompt_test_fraction,
+        "prompt_max_tests": cfg.data.train_prompt_max_tests,
     }
+
+    def _prompt_tests(rec: KodCodeRecord) -> list[str]:
+        """Upstream asserts shown in the prompt for a deterministic ``train_prompt_test_fraction`` of ids."""
+        frac = cfg.data.train_prompt_test_fraction
+        if frac <= 0 or not rec.test:
+            return []
+        if stable_hash(f"{cfg.data.split_seed}:prompt:{rec.id}") % 1000 >= int(frac * 1000):
+            return []
+        return extract_standalone_asserts(rec.test, rec.entry_point, cfg.data.train_prompt_max_tests)
 
     def _write(name: str, recs: list[KodCodeRecord]) -> None:
         path = out_dir / f"{name}.jsonl"
-        n = write_jsonl(path, (record_to_example(r, cfg.generation.system_prompt).to_dict() for r in recs))
+        examples = [record_to_example(r, cfg.generation.system_prompt, _prompt_tests(r)) for r in recs]
+        n = write_jsonl(path, (ex.to_dict() for ex in examples))
         ids_path = out_dir / f"{name}_ids.json"
         write_json(ids_path, [r.id for r in recs])
         manifest["files"][name] = {
             "path": str(path), "rows": n, "sha256": sha256_file(path), "ids_file": str(ids_path),
+            "rows_with_prompt_tests": sum(1 for ex in examples if ex.meta["n_prompt_tests"]),
             "by_subset": dict(collections.Counter(r.subset for r in recs)),
             "by_difficulty": dict(collections.Counter(r.difficulty for r in recs)),
         }
-        log.info("Wrote %s (%d rows)", path, n)
+        log.info("Wrote %s (%d rows, %d with prompt tests)", path, n, manifest["files"][name]["rows_with_prompt_tests"])
 
     _write("validation", validation)
     # Validation records also keep their tests for execution-graded validation.

@@ -6,6 +6,7 @@ but never runs it, so these helpers are safe to call on model output and dataset
 from __future__ import annotations
 
 import ast
+import builtins
 import re
 from dataclasses import dataclass, field
 from typing import Optional
@@ -197,6 +198,54 @@ def analyze_tests(test_src: str) -> TestAnalysis:
                 if isinstance(f, ast.Attribute) and f.attr in {"isclose", "approx", "allclose"}:
                     out.n_value_asserts += 1
     out.referenced_names = sorted(referenced)
+    return out
+
+
+_BUILTIN_NAMES = set(dir(builtins))
+
+
+def extract_standalone_asserts(test_src: str, entry_point: Optional[str], max_tests: int = 1) -> list[str]:
+    """Return self-contained ``assert`` statements from a pytest file that exercise ``entry_point``.
+
+    Only asserts inside ``test_*`` functions whose body is nothing but asserts (an optional
+    docstring allowed, no fixtures, no local variables, no setup) qualify, and the assert may
+    reference only literals, builtins, the entry point and names imported at module level.
+    Such asserts can be shown verbatim in a prompt exactly like an MBPP example test.
+    """
+    if not entry_point:
+        return []
+    try:
+        tree = ast.parse(test_src)
+    except (SyntaxError, ValueError):
+        return []
+    imported: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            imported.update(a.asname or a.name.split(".")[0] for a in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            imported.update(a.asname or a.name for a in node.names)
+    allowed = _BUILTIN_NAMES | imported | {entry_point}
+    out: list[str] = []
+    for fn in tree.body:
+        if not isinstance(fn, ast.FunctionDef) or not fn.name.startswith("test") or fn.args.args or fn.decorator_list:
+            continue
+        body = fn.body
+        if body and isinstance(body[0], ast.Expr) and isinstance(getattr(body[0], "value", None), ast.Constant):
+            body = body[1:]
+        if not body or not all(isinstance(s, ast.Assert) for s in body):
+            continue
+        for stmt in body:
+            names = {n.id for n in ast.walk(stmt) if isinstance(n, ast.Name)}
+            if entry_point not in _called_names(stmt.test) or not names <= allowed:
+                continue
+            if any(isinstance(n, (ast.Lambda, ast.ListComp, ast.GeneratorExp, ast.Await, ast.Yield)) for n in ast.walk(stmt)):
+                continue
+            text = ast.unparse(stmt)
+            if "\n" in text or len(text) > 300:
+                continue
+            out.append(text)
+            if len(out) >= max_tests:
+                return out
     return out
 
 

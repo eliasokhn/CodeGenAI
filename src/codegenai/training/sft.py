@@ -185,7 +185,8 @@ def build_trainer(cfg: Config, model=None, tokenizer=None, train_rows=None, eval
         logging_steps=tcfg.logging_steps, logging_first_step=True,
         eval_strategy="steps", eval_steps=tcfg.eval_steps,
         save_strategy="steps", save_steps=tcfg.save_steps, save_total_limit=tcfg.save_total_limit,
-        load_best_model_at_end=False, report_to=report_to or "none",
+        load_best_model_at_end=tcfg.load_best_model_at_end, metric_for_best_model=tcfg.metric_for_best_model,
+        greater_is_better=False, report_to=report_to or "none",
         max_length=tcfg.max_seq_length, packing=False, completion_only_loss=True,
         dataset_num_proc=None, remove_unused_columns=True, dataloader_pin_memory=torch.cuda.is_available(),
     )
@@ -195,6 +196,10 @@ def build_trainer(cfg: Config, model=None, tokenizer=None, train_rows=None, eval
     )
     trainer.add_callback(GPUMemoryCallback().cb)
     trainer.add_callback(JsonLogCallback(out_dir / "train_log.jsonl").cb)
+    if tcfg.early_stopping_patience > 0 and tcfg.load_best_model_at_end:
+        from transformers import EarlyStoppingCallback
+
+        trainer.add_callback(EarlyStoppingCallback(early_stopping_patience=tcfg.early_stopping_patience))
 
     params = count_parameters(trainer.model)
     log.info("Trainable params: %s / %s (%.3f%%)", f"{params['trainable']:,}", f"{params['total']:,}",
@@ -245,6 +250,9 @@ def train(cfg: Config) -> dict[str, Any]:
         "peak_gpu_memory_gb": round(torch.cuda.max_memory_allocated() / 2**30, 3) if torch.cuda.is_available() else None,
         "lora": cfg.lora.model_dump(), "training": json.loads(cfg.training.model_dump_json()),
         "model": cfg.model.model_dump(), "seed": tcfg.seed,
+        "best_model_checkpoint": trainer.state.best_model_checkpoint,
+        "best_metric": trainer.state.best_metric,
+        "global_step": trainer.state.global_step,
     }
     write_json(out_dir / "summary.json", summary)
     log.info("Training finished in %.0fs; adapter saved to %s; eval_loss=%.4f", elapsed, adapter_dir,

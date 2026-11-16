@@ -81,6 +81,40 @@ def test_choose_entry_point_prefers_test_info_then_tests():
     assert choose_entry_point([], ta, None) is None
 
 
+def test_extract_standalone_asserts():
+    from codegenai.data.extract import extract_standalone_asserts
+
+    src = (
+        "import math\nfrom solution import area, helper\nimport pytest\n\n"
+        "@pytest.fixture\ndef radius():\n    return 2\n\n"
+        "def test_with_fixture(radius):\n    assert area(radius) == 4\n\n"          # fixture -> skipped
+        "def test_local_var():\n    r = 3\n    assert area(r) == 9\n\n"             # local variable -> skipped
+        "def test_pure():\n    '''doc'''\n    assert area(2) == 4\n    assert math.isclose(area(1.5), 2.25)\n\n"
+        "def test_other():\n    assert helper(1) == 1\n"                            # wrong function -> skipped
+    )
+    out = extract_standalone_asserts(src, "area", max_tests=5)
+    assert out == ["assert area(2) == 4", "assert math.isclose(area(1.5), 2.25)"]
+    assert extract_standalone_asserts(src, "area", max_tests=1) == ["assert area(2) == 4"]
+    assert extract_standalone_asserts(src, None) == []
+    assert extract_standalone_asserts("def test_x(:\n", "area") == []
+    assert extract_standalone_asserts("from solution import f\n\ndef test_x():\n    assert f([i for i in range(3)]) == 3\n", "f") == []
+
+
+@pytest.mark.parametrize("name,targets,size", [
+    ("lora_qv_n5000", ["q_proj", "v_proj"], 5000),
+    ("lora_all_n5000", ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"], 5000),
+    ("lora_qv_n20000", ["q_proj", "v_proj"], 20000),
+    ("lora_all_n20000", ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"], 20000),
+])
+def test_headline_experiment_configs(name, targets, size):
+    c = load_config(CONFIG_DIR / "train" / f"{name}.yaml")
+    assert c.lora.target_modules == targets and c.lora.r == 16 and c.lora.alpha == 32
+    assert c.training.train_file == Path(f"data/processed/train_{size}.jsonl")
+    assert c.training.run_name == name and c.training.output_dir == Path(f"runs/{name}")
+    assert c.training.load_best_model_at_end and c.training.early_stopping_patience == 3
+    assert c.data.train_prompt_test_fraction == 0.5 and 20000 in c.data.train_sizes
+
+
 def test_strip_docstrings_and_comments():
     code = 'def f(x):\n    """doc"""\n    # comment\n    return x  # trailing\n'
     out = strip_docstrings_and_comments(code)

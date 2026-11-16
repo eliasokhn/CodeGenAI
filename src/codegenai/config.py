@@ -99,9 +99,13 @@ class DataConfig(BaseModel):
     mbppplus_revision: str = "b2d74c91837c3f2a20c1299ae98133cbe7cfa077"
     candidate_pool_size: int = 30000  # rows scanned (streaming) before filtering
     filters: KodCodeFilters = KodCodeFilters()
-    train_sizes: list[int] = [2000, 5000]
+    train_sizes: list[int] = [2000, 5000, 20000]
     validation_size: int = 300
     split_seed: int = 42
+    # Fraction of training prompts that carry upstream KodCode assert(s) in the exact template the
+    # MBPP evaluation prompt uses (keeps training and evaluation prompts in-distribution).
+    train_prompt_test_fraction: float = 0.5
+    train_prompt_max_tests: int = 1
 
 
 class AuditConfig(BaseModel):
@@ -150,6 +154,9 @@ class TrainingConfig(BaseModel):
     max_steps: int = -1  # >0 overrides epochs (used by smoke tests)
     drop_truncated_completions: bool = True
     report_to: list[str] = ["mlflow"]
+    load_best_model_at_end: bool = True  # keep the checkpoint with the lowest validation loss
+    metric_for_best_model: str = "eval_loss"
+    early_stopping_patience: int = 3  # evaluations without improvement before stopping; 0 disables
 
 
 class SandboxConfig(BaseModel):
